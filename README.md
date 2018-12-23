@@ -1,6 +1,8 @@
 Spring boot test docker
 =======================
 
+Try it without other gradle libraries.
+
 # Define
 + Path to builded jar: **JAR_FILE_PATH=build/libs/app.jar**
 + Container name: **CONTAINER_NAME=spring-boot-test-docker**
