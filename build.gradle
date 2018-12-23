@@ -3,14 +3,10 @@ plugins {
     id 'org.springframework.boot' version '2.1.1.RELEASE'
     id 'io.spring.dependency-management' version '1.0.6.RELEASE'
     id 'io.franzbecker.gradle-lombok' version '1.14'
-    id 'findbugs'
-    id 'jacoco'
     id 'idea'
-    id 'nebula.release' version '9.1.2'
 }
 
 dependencies {
-    implementation('org.springframework.boot:spring-boot-starter-actuator')
     implementation('org.springframework.boot:spring-boot-starter-jdbc')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.flywaydb:flyway-core')
@@ -34,72 +30,17 @@ lombok { // optional: values below are the defaults
     sha256 = "c5178b18caaa1a15e17b99ba5e4023d2de2ebc18b58cde0f5a04ca4b31c10e6d"
 }
 
-/******************************
- *  FindBugs Configuration
- *
- ******************************/
-findbugs {
-    ignoreFailures = false
-    toolVersion = "3.0.1"
-    sourceSets = [sourceSets.main]
-//    excludeFilter = file("config/findbugs/excludeFilter.xml")
-    reportsDir = file("$project.buildDir/reports/findbugs")
-    effort = "max"
-}
-tasks.withType(FindBugs) {
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
+ext.relativeJarArchive = {  ->
+    def path = "$jar.archivePath"
+    def dir = "$projectDir"
+    return path.replace(dir, "")
 }
 
+// ext makes method callable project wide
 
-/******************************
- *  JaCoCo Configuration
- *
- ******************************/
-jacoco {
-    toolVersion = "0.8.2"
-    reportsDir = file("$buildDir/customJacocoReportDir")
+task('docker', type: Exec) {
+    dependsOn build
+    workingDir '.'
+    environment 'JAR_FILE', relativeJarArchive()
+    commandLine 'docker-compose', 'build'
 }
-
-jacocoTestReport {
-    reports {
-        xml.enabled false
-        csv.enabled false
-        html.destination file("${buildDir}/jacocoHtml")
-    }
-}
-
-jacocoTestCoverageVerification {
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.5
-            }
-        }
-
-        rule {
-            enabled = false
-            element = 'CLASS'
-            includes = ['org.gradle.*']
-
-            limit {
-                counter = 'LINE'
-                value = 'TOTALCOUNT'
-                maximum = 0.3
-            }
-        }
-    }
-}
-
-/******************************
- *  Nebula Configuration
- *
- ******************************/
-//contacts {
-//    'bob@foobar.com' {
-//        moniker 'Bob Smith'
-//        github 'bobsmith'
-//    }
-//}
